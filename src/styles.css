@@ -1,0 +1,85 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-slate-950);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+}
+
+button {
+  touch-action: manipulation;
+}
+
+@keyframes eg-shake {
+  10%,
+  90% {
+    transform: translateX(-1px);
+  }
+  20%,
+  80% {
+    transform: translateX(2px);
+  }
+  30%,
+  50%,
+  70% {
+    transform: translateX(-4px);
+  }
+  40%,
+  60% {
+    transform: translateX(4px);
+  }
+}
+
+.eg-shake {
+  animation: eg-shake 0.5s ease-in-out;
+}
+
+@keyframes eg-reveal {
+  0% {
+    transform: rotateX(0deg);
+  }
+  50% {
+    transform: rotateX(90deg);
+  }
+  100% {
+    transform: rotateX(0deg);
+  }
+}
+
+.eg-reveal {
+  animation: eg-reveal 0.5s ease both;
+}
+
+@keyframes eg-pop {
+  0% {
+    transform: scale(0.92);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.eg-pop {
+  animation: eg-pop 0.3s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eg-shake,
+  .eg-reveal,
+  .eg-pop {
+    animation: none;
+  }
+}
