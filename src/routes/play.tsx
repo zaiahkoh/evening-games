@@ -261,7 +261,6 @@ function PlayPage() {
             {challenge.category}
           </span>
         ) : null}
-        {challenge.hint ? <span>{challenge.hint}</span> : null}
       </div>
 
       <p aria-live="polite" className="h-5 text-center text-sm font-medium text-amber-300">

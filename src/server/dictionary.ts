@@ -1,24 +1,38 @@
-import rawWords from "#/data/wordle-allowed-guesses.txt?raw"
+import rawWords from "#/data/dictionary.txt?raw"
 
-const WORD_PATTERN = /^[A-Z]{5}$/
+export const MIN_WORD_LENGTH = 3
+export const MAX_WORD_LENGTH = 10
 
-export function buildDictionary(raw: string): Set<string> {
-  const words = raw
-    .split("\n")
-    .map((line) => line.trim().toUpperCase())
-    .filter((word) => WORD_PATTERN.test(word))
-  return new Set(words)
+const WORD_PATTERN = /^[A-Z]+$/
+
+export function buildDictionary(raw: string): Map<number, Set<string>> {
+  const byLength = new Map<number, Set<string>>()
+
+  for (const line of raw.split("\n")) {
+    const word = line.trim().toUpperCase()
+    if (word.length < MIN_WORD_LENGTH || word.length > MAX_WORD_LENGTH) continue
+    if (!WORD_PATTERN.test(word)) continue
+
+    let words = byLength.get(word.length)
+    if (!words) {
+      words = new Set()
+      byLength.set(word.length, words)
+    }
+    words.add(word)
+  }
+
+  return byLength
 }
 
-let cached: Set<string> | null = null
+let cached: Map<number, Set<string>> | null = null
 
-export function getDictionary(): Set<string> {
+export function getDictionary(): Map<number, Set<string>> {
   if (cached === null) {
     cached = buildDictionary(rawWords)
   }
   return cached
 }
 
-export function isAllowedGuess(guess: string): boolean {
-  return getDictionary().has(guess)
+export function isAllowedGuess(guess: string, length: number): boolean {
+  return getDictionary().get(length)?.has(guess) ?? false
 }

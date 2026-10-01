@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 import { SERIES, toSeriesMeta } from "#/server/data/challenges.server"
+import { MAX_WORD_LENGTH, MIN_WORD_LENGTH } from "#/server/dictionary"
 
 describe("series configuration", () => {
   it("has unique series and challenge ids", () => {
@@ -16,12 +17,14 @@ describe("series configuration", () => {
     }
   })
 
-  it("uses five-letter uppercase answers and sane attempt limits", () => {
+  it("uses supported uppercase answers and sane attempt limits", () => {
     for (const series of SERIES) {
       expect(series.challenges.length).toBeGreaterThan(0)
       expect(series.maxAttempts).toBeGreaterThan(0)
       for (const challenge of series.challenges) {
-        expect(challenge.answer).toMatch(/^[A-Z]{5}$/)
+        expect(challenge.answer).toMatch(/^[A-Z]+$/)
+        expect(challenge.answer.length).toBeGreaterThanOrEqual(MIN_WORD_LENGTH)
+        expect(challenge.answer.length).toBeLessThanOrEqual(MAX_WORD_LENGTH)
       }
     }
   })

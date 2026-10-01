@@ -3,7 +3,6 @@ export type TileState = "correct" | "present" | "absent"
 export type ChallengeMeta = {
   id: string
   length: number
-  hint?: string
   category?: string
 }
 

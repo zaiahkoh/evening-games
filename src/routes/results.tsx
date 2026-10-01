@@ -89,9 +89,7 @@ function ResultsPage() {
                   {index + 1}.{" "}
                   <span className="font-mono tracking-widest">{challenge.solution}</span>
                 </p>
-                <p className="truncate text-xs text-slate-500">
-                  {challenge.category ?? challenge.hint ?? ""}
-                </p>
+                <p className="truncate text-xs text-slate-500">{challenge.category ?? ""}</p>
               </div>
               <div className="text-right">
                 <p

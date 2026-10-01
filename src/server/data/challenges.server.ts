@@ -19,11 +19,11 @@ export const SERIES: Series[] = [
     subtitle: "Five words between you and the leaderboard.",
     maxAttempts: 6,
     challenges: [
-      { id: "party", answer: "PARTY", category: "Warm up", hint: "Get the night started" },
-      { id: "games", answer: "GAMES", category: "Warm up", hint: "That is why you are here" },
-      { id: "light", answer: "LIGHT", category: "Theme", hint: "Opposite of heavy" },
-      { id: "music", answer: "MUSIC", category: "Theme", hint: "Turn it up" },
-      { id: "laugh", answer: "LAUGH", category: "Finale", hint: "The goal of the night" },
+      { id: "challenge-1", answer: "PARTY", category: "Warm up" },
+      { id: "challenge-2", answer: "GAMES", category: "Warm up" },
+      { id: "challenge-3", answer: "MUSIC", category: "Theme" },
+      { id: "challenge-4", answer: "CANDLE", category: "Theme" },
+      { id: "challenge-5", answer: "LANTERN", category: "Finale" },
     ],
   },
 ]
@@ -47,7 +47,6 @@ export function toSeriesMeta(series: Series): SeriesMeta {
     challenges: series.challenges.map((challenge) => ({
       id: challenge.id,
       length: challenge.answer.length,
-      hint: challenge.hint,
       category: challenge.category,
     })),
   }

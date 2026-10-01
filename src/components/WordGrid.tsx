@@ -1,7 +1,7 @@
 import type { TileState } from "#/lib/types"
 
 const TILE_BASE =
-  "flex aspect-square select-none items-center justify-center rounded-md border-2 text-xl font-extrabold uppercase sm:text-2xl"
+  "flex aspect-square select-none items-center justify-center rounded-md border-2 text-lg font-extrabold uppercase sm:text-2xl"
 
 function tileClass(state: TileState | undefined, filled: boolean): string {
   if (state === "correct") return "border-emerald-400 bg-emerald-500 text-white"
@@ -29,12 +29,13 @@ export function WordGrid({
   currentGuess,
   shakeKey,
 }: WordGridProps) {
-  const gridStyle = { gridTemplateColumns: `repeat(${length}, minmax(0, 1fr))` }
+  const rowStyle = { gridTemplateColumns: `repeat(${length}, minmax(0, 1fr))` }
+  const boardStyle = { maxWidth: `${Math.min(length * 3.25, 30)}rem` }
   const rowKeys = Array.from({ length: maxAttempts }, (_, index) => `row-${index}`)
   const columnKeys = Array.from({ length }, (_, index) => `column-${index}`)
 
   return (
-    <section aria-label="Guess board" className="mx-auto grid w-full max-w-72 gap-1.5">
+    <section aria-label="Guess board" className="mx-auto grid w-full gap-1.5" style={boardStyle}>
       {rowKeys.map((rowKey, rowIndex) => {
         const submitted = guesses[rowIndex]
         const isActive = rowIndex === guesses.length
@@ -46,7 +47,7 @@ export function WordGrid({
           <div
             key={isActive ? `${rowKey}-${shakeKey}` : rowKey}
             className={`grid gap-1.5 ${rowClass}`}
-            style={gridStyle}
+            style={rowStyle}
           >
             {columnKeys.map((columnKey, columnIndex) => {
               const letter = letters[columnIndex] ?? ""

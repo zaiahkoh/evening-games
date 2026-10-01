@@ -134,7 +134,6 @@ export const getRunState = createServerFn()
       return {
         id: challenge.id,
         length: challenge.answer.length,
-        hint: challenge.hint,
         category: challenge.category,
         status,
         guesses: challengeGuesses.map((row) => row.guess),
@@ -209,7 +208,9 @@ export const submitGuess = createServerFn({ method: "POST" })
 
     const guess = normalizeGuess(data.guess)
     if (!isWellFormedGuess(guess, challenge.answer.length)) return fail("invalid-format")
-    if (guess !== challenge.answer && !isAllowedGuess(guess)) return fail("not-in-dictionary")
+    if (guess !== challenge.answer && !isAllowedGuess(guess, challenge.answer.length)) {
+      return fail("not-in-dictionary")
+    }
 
     const tiles = evaluateGuess(challenge.answer, guess)
     const solved = guess === challenge.answer
@@ -309,7 +310,6 @@ async function buildRunSummary(run: RunRow, series: Series): Promise<RunSummary 
       return {
         id: challenge.id,
         length: challenge.answer.length,
-        hint: challenge.hint,
         category: challenge.category,
         status: solved ? "solved" : "failed",
         guessesUsed: challengeGuesses.length,
