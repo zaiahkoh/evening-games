@@ -13,7 +13,7 @@ function tileClass(state: TileState | undefined, filled: boolean): string {
 }
 
 type WordGridProps = {
-  length: number
+  wordLengths: number[]
   maxAttempts: number
   guesses: string[]
   feedback: TileState[][]
@@ -22,17 +22,26 @@ type WordGridProps = {
 }
 
 export function WordGrid({
-  length,
+  wordLengths,
   maxAttempts,
   guesses,
   feedback,
   currentGuess,
   shakeKey,
 }: WordGridProps) {
-  const rowStyle = { gridTemplateColumns: `repeat(${length}, minmax(0, 1fr))` }
-  const boardStyle = { maxWidth: `${Math.min(length * 3.25, 30)}rem` }
+  let runningOffset = 0
+  const words = wordLengths.map((wordLength, wordIndex) => {
+    const start = runningOffset
+    runningOffset += wordLength
+    return { wordIndex, wordLength, start }
+  })
+  const totalLetters = runningOffset
+  const gapRem = Math.max(0, words.length - 1) * 1.25
+  const boardStyle = { maxWidth: `${Math.min(totalLetters * 3.25 + gapRem, 34)}rem` }
   const rowKeys = Array.from({ length: maxAttempts }, (_, index) => `row-${index}`)
-  const columnKeys = Array.from({ length }, (_, index) => `column-${index}`)
+  const columnKeys = words.map((word) =>
+    Array.from({ length: word.wordLength }, (_, index) => `word-${word.wordIndex}-column-${index}`),
+  )
 
   return (
     <section aria-label="Guess board" className="mx-auto grid w-full gap-1.5" style={boardStyle}>
@@ -46,23 +55,34 @@ export function WordGrid({
         return (
           <div
             key={isActive ? `${rowKey}-${shakeKey}` : rowKey}
-            className={`grid gap-1.5 ${rowClass}`}
-            style={rowStyle}
+            className={`flex justify-center gap-3 ${rowClass}`}
           >
-            {columnKeys.map((columnKey, columnIndex) => {
-              const letter = letters[columnIndex] ?? ""
-              const state = states?.[columnIndex]
-              const revealClass = state ? "eg-reveal" : ""
-              return (
-                <div
-                  key={columnKey}
-                  className={`${TILE_BASE} ${tileClass(state, letter !== "")} ${revealClass}`}
-                  style={state ? { animationDelay: `${columnIndex * 80}ms` } : undefined}
-                >
-                  {letter}
-                </div>
-              )
-            })}
+            {words.map((word, wordIndex) => (
+              <div
+                key={`${rowKey}-word-${word.wordIndex}`}
+                className="grid basis-0 gap-1.5"
+                style={{
+                  flexGrow: word.wordLength,
+                  gridTemplateColumns: `repeat(${word.wordLength}, minmax(0, 1fr))`,
+                }}
+              >
+                {columnKeys[wordIndex].map((columnKey, columnIndex) => {
+                  const letterIndex = word.start + columnIndex
+                  const letter = letters[letterIndex] ?? ""
+                  const state = states?.[letterIndex]
+                  const revealClass = state ? "eg-reveal" : ""
+                  return (
+                    <div
+                      key={columnKey}
+                      className={`${TILE_BASE} ${tileClass(state, letter !== "")} ${revealClass}`}
+                      style={state ? { animationDelay: `${letterIndex * 80}ms` } : undefined}
+                    >
+                      {letter}
+                    </div>
+                  )
+                })}
+              </div>
+            ))}
           </div>
         )
       })}

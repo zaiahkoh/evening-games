@@ -269,7 +269,7 @@ function PlayPage() {
 
       <div className="flex flex-1 flex-col justify-center">
         <WordGrid
-          length={challenge.length}
+          wordLengths={challenge.wordLengths}
           maxAttempts={run.series.maxAttempts}
           guesses={challenge.guesses}
           feedback={challenge.feedback}

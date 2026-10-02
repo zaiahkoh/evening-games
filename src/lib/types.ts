@@ -3,6 +3,7 @@ export type TileState = "correct" | "present" | "absent"
 export type ChallengeMeta = {
   id: string
   length: number
+  wordLengths: number[]
   category?: string
 }
 

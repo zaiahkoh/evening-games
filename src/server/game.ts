@@ -11,12 +11,15 @@ import type {
 import {
   decodeFeedback,
   encodeFeedback,
-  evaluateGuess,
+  evaluatePhrase,
   isWellFormedGuess,
   normalizeGuess,
+  segmentGuess,
+  wordLengthsOf,
 } from "#/lib/wordle"
 import {
   getActiveSeries,
+  getAnswerWords,
   getSeriesById,
   type Series,
   toSeriesMeta,
@@ -120,9 +123,10 @@ export const getRunState = createServerFn()
     const { run, series } = context
     const guesses = await getRunGuesses(env.DB, run.id)
 
-    const challenges = series.challenges.map((challenge) => {
+    const challenges = series.challenges.map((challenge, index) => {
+      const words = getAnswerWords(challenge, series.id, index)
       const challengeGuesses = challengeGuessesFor(guesses, challenge.id)
-      const solved = isChallengeSolved(challengeGuesses, challenge.answer)
+      const solved = isChallengeSolved(challengeGuesses, words.join(""))
       const failed = !solved && challengeGuesses.length >= series.maxAttempts
       const status: ChallengeStatus = solved
         ? "solved"
@@ -133,7 +137,8 @@ export const getRunState = createServerFn()
             : "unplayed"
       return {
         id: challenge.id,
-        length: challenge.answer.length,
+        length: words.join("").length,
+        wordLengths: wordLengthsOf(words),
         category: challenge.category,
         status,
         guesses: challengeGuesses.map((row) => row.guess),
@@ -195,25 +200,33 @@ export const submitGuess = createServerFn({ method: "POST" })
 
     for (let index = 0; index < challengeIndex; index += 1) {
       const challenge = series.challenges[index]
+      const previousWords = getAnswerWords(challenge, series.id, index)
       const previousGuesses = challengeGuessesFor(guesses, challenge.id)
-      const solved = isChallengeSolved(previousGuesses, challenge.answer)
+      const solved = isChallengeSolved(previousGuesses, previousWords.join(""))
       const terminal = solved || previousGuesses.length >= series.maxAttempts
       if (!terminal) return fail("out-of-order")
     }
 
     const challenge = series.challenges[challengeIndex]
+    const answerWords = getAnswerWords(challenge, series.id, challengeIndex)
+    const wordLengths = wordLengthsOf(answerWords)
+    const totalLetters = wordLengths.reduce((sum, length) => sum + length, 0)
     const challengeGuesses = challengeGuessesFor(guesses, challenge.id)
-    if (isChallengeSolved(challengeGuesses, challenge.answer)) return fail("challenge-finished")
+    if (isChallengeSolved(challengeGuesses, answerWords.join(""))) return fail("challenge-finished")
     if (challengeGuesses.length >= series.maxAttempts) return fail("no-attempts-left")
 
     const guess = normalizeGuess(data.guess)
-    if (!isWellFormedGuess(guess, challenge.answer.length)) return fail("invalid-format")
-    if (guess !== challenge.answer && !isAllowedGuess(guess, challenge.answer.length)) {
-      return fail("not-in-dictionary")
-    }
+    if (!isWellFormedGuess(guess, totalLetters)) return fail("invalid-format")
+    const guessWords = segmentGuess(guess, wordLengths)
+    if (!guessWords) return fail("invalid-format")
 
-    const tiles = evaluateGuess(challenge.answer, guess)
-    const solved = guess === challenge.answer
+    const accepted = guessWords.every(
+      (word, index) => word === answerWords[index] || isAllowedGuess(word, wordLengths[index]),
+    )
+    if (!accepted) return fail("not-in-dictionary")
+
+    const tiles = evaluatePhrase(answerWords, guessWords)
+    const solved = guessWords.every((word, index) => word === answerWords[index])
     const attemptsUsed = challengeGuesses.length + 1
     const dead = !solved && attemptsUsed >= series.maxAttempts
 
@@ -231,7 +244,7 @@ export const submitGuess = createServerFn({ method: "POST" })
       solved,
       dead,
       attemptsUsed,
-      solution: solved || dead ? challenge.answer : null,
+      solution: solved || dead ? answerWords.join(" ") : null,
       nextChallengeId: solved || dead ? (nextChallenge?.id ?? null) : null,
     }
   })
@@ -252,9 +265,10 @@ export const finishRun = createServerFn({ method: "POST" })
         let solvedCount = 0
         let totalGuesses = 0
 
-        for (const challenge of series.challenges) {
+        for (const [index, challenge] of series.challenges.entries()) {
+          const words = getAnswerWords(challenge, series.id, index)
           const challengeGuesses = challengeGuessesFor(guesses, challenge.id)
-          const solved = isChallengeSolved(challengeGuesses, challenge.answer)
+          const solved = isChallengeSolved(challengeGuesses, words.join(""))
           if (!solved && challengeGuesses.length < series.maxAttempts) {
             return { ok: false, reason: "incomplete" }
           }
@@ -304,16 +318,18 @@ async function buildRunSummary(run: RunRow, series: Series): Promise<RunSummary 
     startedAtMs: run.started_at_ms,
     rank,
     score: toScoreSummary(score),
-    challenges: series.challenges.map((challenge) => {
+    challenges: series.challenges.map((challenge, index) => {
+      const words = getAnswerWords(challenge, series.id, index)
       const challengeGuesses = challengeGuessesFor(guesses, challenge.id)
-      const solved = isChallengeSolved(challengeGuesses, challenge.answer)
+      const solved = isChallengeSolved(challengeGuesses, words.join(""))
       return {
         id: challenge.id,
-        length: challenge.answer.length,
+        length: words.join("").length,
+        wordLengths: wordLengthsOf(words),
         category: challenge.category,
         status: solved ? "solved" : "failed",
         guessesUsed: challengeGuesses.length,
-        solution: challenge.answer,
+        solution: words.join(" "),
       }
     }),
   }

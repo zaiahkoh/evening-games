@@ -107,6 +107,11 @@ function HomePage() {
             {series.maxAttempts} guesses per word, {series.challenges.length} words in the series.
           </li>
           <li>Green means the letter is in the right spot, amber means it is in the word.</li>
+          <li>
+            Some answers hide more than one word; type letters only and the gap fills in
+            automatically. Each part is checked as its own word, but hints consider the whole
+            phrase.
+          </li>
           <li>Ranking: words solved, then fewest guesses, then fastest time.</li>
         </ul>
       </section>

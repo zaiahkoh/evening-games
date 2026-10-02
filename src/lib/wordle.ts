@@ -10,7 +10,34 @@ const FEEDBACK_CODES: Record<TileState, string> = {
 }
 
 export function normalizeGuess(input: string): string {
-  return input.trim().toUpperCase()
+  return input.replace(/\s+/g, "").toUpperCase()
+}
+
+export function splitAnswerWords(answer: string): string[] {
+  return answer
+    .toUpperCase()
+    .split(/\s+/)
+    .filter((word) => word.length > 0)
+}
+
+export function wordLengthsOf(words: string[]): number[] {
+  return words.map((word) => word.length)
+}
+
+export function segmentGuess(guess: string, wordLengths: number[]): string[] | null {
+  const totalLength = wordLengths.reduce((sum, length) => sum + length, 0)
+  if (guess.length !== totalLength) return null
+  const words: string[] = []
+  let offset = 0
+  for (const length of wordLengths) {
+    words.push(guess.slice(offset, offset + length))
+    offset += length
+  }
+  return words
+}
+
+export function evaluatePhrase(answerWords: string[], guessWords: string[]): TileState[] {
+  return evaluateGuess(answerWords.join(""), guessWords.join(""))
 }
 
 export function isWellFormedGuess(guess: string, length = WORD_LENGTH): boolean {

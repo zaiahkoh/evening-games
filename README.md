@@ -54,20 +54,27 @@ Local D1 data lives in `.wrangler/state/v3/d1`. Delete that directory to reset i
 ## Editing the challenges
 
 The series is defined in [`src/server/data/challenges.server.ts`](src/server/data/challenges.server.ts).
-Each challenge is a 3–10 letter answer with an optional category:
+Each challenge is one or more words separated by spaces, with an optional category:
 
 ```ts
 {
-  id: "candle",
-  answer: "CANDLE",
+  id: "challenge-4",
+  answer: "MOVIE NIGHT",
   category: "Theme",
 }
 ```
 
 Rules:
 
-- `answer` must be 3–10 uppercase letters (the supported dictionary range).
-- `id` must be unique within the series.
+- Every word must be 3–10 uppercase letters (the supported dictionary range).
+- Answers may contain any number of words (e.g. `ICE CREAM SANDWICH`). Players type letters
+  only; the board shows the gaps automatically.
+- Each guess part is validated on its own: it must equal the corresponding answer word or be in
+  the dictionary for that word's length.
+- Tile feedback and keyboard hints consider the whole phrase, so a letter that appears anywhere
+  in the answer can light up (for example guessing a `D` while solving `READ BOOKS` shows amber
+  because of the `D` in `READ`).
+- `id` must be unique within the series and should not spell out the answer.
 - Answers do not have to exist in the dictionary; an exact match always counts as correct.
 - Add more series to the `SERIES` array later if you want multiple events.
 
